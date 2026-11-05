@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>목깨비의 취업시장</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="app-header"></header>
+
+<section class="hero">
+  <div class="container">
+    <h1>흩어진 채용정보, 한곳에서 확인하세요</h1>
+    <p>목포대 재학생·졸업생을 위한 통합 취업 정보 서비스</p>
+    <form class="search-bar" action="jobs.html" method="get">
+      <input type="search" name="q" placeholder="직무, 회사명, 키워드를 검색해 보세요" aria-label="채용공고 검색">
+      <button class="btn" type="submit">검색</button>
+    </form>
+  </div>
+</section>
+
+<main class="container page">
+  <!-- 알림 (로그인 시) -->
+  <section class="card hidden" id="noti-card">
+    <div class="card-head"><h2>내 알림</h2><a href="alerts.html">전체 보기</a></div>
+    <ul class="noti-list" id="noti-list"></ul>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>분야별 바로가기</h2></div>
+    <div class="chips" id="field-chips"></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>최신 채용공고</h2><a href="jobs.html">더 보기</a></div>
+    <div class="job-list" id="job-list"></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>게시판 최신글</h2><a href="board.html">더 보기</a></div>
+    <table class="board-table">
+      <thead><tr><th>제목</th><th style="width:110px">이름</th><th style="width:110px">날짜</th></tr></thead>
+      <tbody id="post-rows"></tbody>
+    </table>
+  </section>
+</main>
+<footer id="app-footer"></footer>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/jobs.js"></script>
+<script>
+DK.renderChrome('home');
+var esc = DK.esc;
+
+document.getElementById('field-chips').innerHTML = FIELDS.map(function (f) {
+  return '<a class="chip" href="jobs.html?field=' + encodeURIComponent(f) + '"><span>' + esc(f) + '</span></a>';
+}).join('');
+
+function renderJobs() {
+  var list = Jobs.all().filter(function (j) { return j.status === '모집중'; }).sort(function (a, b) { return a.collectedAt < b.collectedAt ? 1 : -1; }).slice(0, 5);
+  document.getElementById('job-list').innerHTML = list.map(function (j) { return Jobs.card(j); }).join('');
+}
+Jobs.bind(document.getElementById('job-list'), renderJobs);
+renderJobs();
+
+var posts = DK.Store.get(DK.K.posts, []).slice().sort(function (a, b) { return b.id - a.id; }).slice(0, 5);
+document.getElementById('post-rows').innerHTML = posts.map(function (p) {
+  return '<tr><td class="title"><a href="board-view.html?id=' + p.id + '">' + esc(p.title) + '</a></td><td>' + esc(p.writer) + '</td><td class="date">' + esc(p.date) + '</td></tr>';
+}).join('');
+
+if (DK.Auth.current()) {
+  var ns = DK.Noti.mine().slice(0, 3);
+  var c = document.getElementById('noti-card'); c.classList.remove('hidden');
+  document.getElementById('noti-list').innerHTML = ns.length ? ns.map(function (n) {
+    var external = /^https?:\/\//i.test(n.link || '');
+    var href = external ? DK.safeUrl(n.link) : (/^[\w\-]+\.html(\?[\w=&%\-]*)?$/.test(n.link || '') ? n.link : '#');
+    return '<li class="' + (n.read ? '' : 'unread') + '"><div><span class="tag ' + (n.type === 'ADMIN' ? 'orange' : '') + '">' + (n.type === 'ADMIN' ? '관리자' : esc(n.field)) + '</span>' +
+      '<div class="t"><a href="' + esc(href) + '">' + esc(n.title) + '</a></div></div><div class="when">' + esc(n.at) + '</div></li>';
+  }).join('') : '<li class="empty" style="display:block">새 알림이 없습니다. <a href="alerts.html">관심 분야 설정하기</a></li>';
+}
+</script>
+</body>
+</html>

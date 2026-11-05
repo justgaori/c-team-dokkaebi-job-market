@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>알림 - 목깨비의 취업시장</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="app-header"></header>
+<main class="container page">
+  <div class="page-title"><div><h1>알림</h1><div class="muted">관심 분야에 새 공고가 등록되면 알려드립니다.</div></div></div>
+
+  <div class="grid two">
+    <section class="card">
+      <div class="card-head"><h2>관심 분야 설정</h2></div>
+      <div class="chips" id="chips"></div>
+      <div class="btn-row" style="margin-top:14px"><button class="btn" id="save-int">저장</button></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>내 알림</h2><button class="btn small secondary" id="read-all">모두 읽음</button></div>
+      <ul class="noti-list" id="notis"></ul>
+    </section>
+  </div>
+
+  <!-- 관리자 전용 -->
+  <section class="card hidden" id="admin-box">
+    <div class="card-head"><h2>관리자 메시지 / 신규 공고 알림</h2><span class="tag orange">관리자 전용</span></div>
+    <div class="grid two">
+      <form id="msg-form" novalidate>
+        <h3>사용자에게 메시지 보내기</h3>
+        <div class="field"><label for="m-to">받는 사람</label><select id="m-to"></select></div>
+        <div class="field"><label for="m-title">제목</label><input type="text" id="m-title" maxlength="60"><div class="error-msg"></div></div>
+        <div class="field"><label for="m-link">확인 경로 (선택, http/https 또는 사이트 내 페이지)</label><input type="text" id="m-link" placeholder="예: board.html"></div>
+        <button class="btn" type="submit">보내기</button>
+      </form>
+      <form id="job-form" novalidate>
+        <h3>신규 공고 등록 시 알림 테스트</h3>
+        <p class="muted" style="margin-top:0">실제로는 API 수집 후 자동 발송됩니다. 화면 확인용 시뮬레이션입니다.</p>
+        <div class="field"><label for="j-title">공고 제목</label><input type="text" id="j-title" maxlength="80"><div class="error-msg"></div></div>
+        <div class="field"><label for="j-field">분야</label><select id="j-field"></select></div>
+        <button class="btn accent" type="submit">공고 등록 + 알림 발송</button>
+      </form>
+    </div>
+  </section>
+</main>
+<footer id="app-footer"></footer>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+DK.renderChrome('alerts');
+if (DK.Auth.require()) {
+  var $ = function (i) { return document.getElementById(i); };
+  var me = DK.Auth.current();
+
+  $('chips').innerHTML = FIELDS.map(function (f) {
+    return '<label class="chip"><input type="checkbox" value="' + DK.esc(f) + '" ' + (me.interests.indexOf(f) > -1 ? 'checked' : '') + '><span>' + DK.esc(f) + '</span></label>';
+  }).join('');
+  $('save-int').addEventListener('click', function () {
+    me.interests = Array.prototype.map.call($('chips').querySelectorAll('input:checked'), function (i) { return i.value; });
+    DK.Auth.update(me);
+    DK.toast(me.interests.length ? '관심 분야가 저장되었습니다. (' + me.interests.join(', ') + ')' : '관심 분야가 모두 해제되었습니다.', 'ok');
+  });
+
+  function linkOf(n) { return n.link ? n.link : '#'; }
+  function renderNotis() {
+    var list = DK.Noti.mine();
+    $('notis').innerHTML = list.length ? list.map(function (n) {
+      var external = /^https?:\/\//i.test(n.link || '');
+      var href = external ? DK.safeUrl(n.link) : (/^[\w\-]+\.html(\?[\w=&%\-]*)?$/.test(n.link || '') ? n.link : '#');
+      return '<li class="' + (n.read ? '' : 'unread') + '"><div><span class="tag ' + (n.type === 'ADMIN' ? 'orange' : '') + '">' + (n.type === 'ADMIN' ? '관리자' : esc(n.field)) + '</span>' +
+        '<div class="t"><a href="' + DK.esc(href) + '" data-read="' + n.id + '"' + (external ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' + DK.esc(n.title) + '</a></div>' +
+        '<div class="muted">' + (n.type === 'ADMIN' ? '관리자 메시지' : '신규 공고 · ' + DK.esc(n.field)) + '</div></div><div class="when">' + DK.esc(n.at) + '</div></li>';
+    }).join('') : '<li class="empty" style="display:block">받은 알림이 없습니다.<br>관심 분야를 선택하면 새 공고 알림을 받을 수 있어요.</li>';
+  }
+  var esc = DK.esc;
+  function markRead(id) {
+    var all = DK.Store.get(DK.K.noti, []);
+    all.forEach(function (n) { if (id === 'all' ? n.userId === me.id : n.id === id) n.read = true; });
+    DK.Store.set(DK.K.noti, all);
+  }
+  $('notis').addEventListener('click', function (e) { var a = e.target.closest('[data-read]'); if (a) markRead(+a.dataset.read); });
+  $('read-all').addEventListener('click', function () { markRead('all'); renderNotis(); DK.renderChrome('alerts'); DK.toast('모두 읽음 처리했습니다.', 'ok'); });
+  renderNotis();
+
+  /* 관리자 영역 */
+  if (me.role === 'ADMIN') {
+    $('admin-box').classList.remove('hidden');
+    var users = DK.Store.get(DK.K.users, []).filter(function (u) { return u.role !== 'ADMIN'; });
+    $('m-to').innerHTML = '<option value="*">전체 사용자</option>' + users.map(function (u) { return '<option value="' + DK.esc(u.id) + '">' + DK.esc(u.name) + ' (' + DK.esc(u.id) + ')</option>'; }).join('');
+    $('j-field').innerHTML = FIELDS.map(function (f) { return '<option>' + DK.esc(f) + '</option>'; }).join('');
+
+    $('msg-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var t = $('m-title'); DK.setErr(t, '');
+      if (!t.value.trim()) { DK.setErr(t, '제목을 입력해 주세요.'); return; }
+      var link = $('m-link').value.trim();
+      if (link && !/^(https?:\/\/\S+|[\w\-]+\.html(\?[\w=&%\-]*)?)$/.test(link)) { DK.toast('확인 경로는 http/https 주소 또는 사이트 내 페이지만 입력할 수 있습니다.', 'err'); return; }
+      var to = $('m-to').value, targets = to === '*' ? users : users.filter(function (u) { return u.id === to; });
+      targets.forEach(function (u) { DK.Noti.push({ userId: u.id, type: 'ADMIN', title: t.value.trim(), field: '', link: link }); });
+      DK.toast(targets.length + '명에게 메시지를 보냈습니다.', 'ok'); t.value = ''; $('m-link').value = '';
+    });
+
+    $('job-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var t = $('j-title'); DK.setErr(t, '');
+      if (!t.value.trim()) { DK.setErr(t, '공고 제목을 입력해 주세요.'); return; }
+      var jobs = DK.Store.get(DK.K.jobs, []), id = DK.nextId(jobs), field = $('j-field').value;
+      jobs.push({ id: id, title: t.value.trim(), company: '(데모) 신규 기업', field: field, region: '전국', career: '경력 무관', empType: '정규직', start: DK.today(), end: '2026-12-31', source: '기업 홈페이지', applyUrl: 'https://example.com/apply/' + id, status: '모집중', collectedAt: DK.now(), summary: '관리자가 등록한 데모 공고입니다.' });
+      DK.Store.set(DK.K.jobs, jobs);
+      var targets = DK.Store.get(DK.K.users, []).filter(function (u) { return u.interests && u.interests.indexOf(field) > -1; });
+      targets.forEach(function (u) { DK.Noti.push({ userId: u.id, type: 'JOB', title: t.value.trim(), field: field, link: 'jobs.html?id=' + id }); });
+      DK.toast('공고를 등록했고 ' + targets.length + '명에게 알림을 보냈습니다.', 'ok'); t.value = '';
+    });
+  }
+}
+</script>
+</body>
+</html>

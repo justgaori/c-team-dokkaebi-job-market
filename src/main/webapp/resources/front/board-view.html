@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>게시글 - 목깨비의 취업시장</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="app-header"></header>
+<main class="container page">
+  <div class="card" id="view"></div>
+</main>
+<footer id="app-footer"></footer>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+DK.renderChrome('board');
+var id = +DK.qs('id');
+var posts = DK.Store.get(DK.K.posts, []);
+var p = posts.filter(function (x) { return x.id === id; })[0];
+var v = document.getElementById('view');
+if (!p) {
+  v.innerHTML = '<div class="empty">존재하지 않는 게시글입니다.<br><br><a class="btn secondary" href="board.html">목록으로</a></div>';
+} else {
+  var u = DK.Auth.current();
+  /* 수정·삭제: 작성자 본인 또는 관리자 */
+  var canEdit = !!u && (u.id === p.writerId || u.role === 'ADMIN');
+  v.innerHTML = '<div class="post-head"><h1>' + DK.esc(p.title) + '</h1>' +
+    '<div class="post-info"><span>이름: ' + DK.esc(p.writer) + '</span><span>날짜: ' + DK.esc(p.date) + '</span></div></div>' +
+    '<div class="post-body">' + DK.esc(p.content) + '</div>' +
+    '<div class="btn-row" style="justify-content:space-between"><a class="btn secondary" href="board.html">목록</a>' +
+    (canEdit ? '<div class="btn-row"><a class="btn" href="board-form.html?id=' + p.id + '">수정</a><button class="btn danger" id="del">삭제</button></div>' : '') + '</div>';
+  var d = document.getElementById('del');
+  if (d) d.addEventListener('click', function () {
+    DK.confirmBox('이 게시글을 삭제하시겠습니까?', function () {
+      DK.Store.set(DK.K.posts, posts.filter(function (x) { return x.id !== id; }));
+      DK.toast('게시글이 삭제되었습니다.', 'ok');
+      setTimeout(function () { location.href = 'board.html'; }, 700);
+    });
+  });
+}
+</script>
+</body>
+</html>

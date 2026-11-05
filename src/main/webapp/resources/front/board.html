@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>게시판 - 목깨비의 취업시장</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="app-header"></header>
+<main class="container page">
+  <div class="page-title">
+    <div><h1>재학생·졸업생 정보 공유 게시판</h1><div class="muted">취업 후기, 스터디, 지역 소식을 자유롭게 공유해 보세요.</div></div>
+    <a class="btn" id="write-btn" href="board-form.html">글쓰기</a>
+  </div>
+  <div class="card">
+    <div class="search-bar" style="max-width:none;margin-bottom:12px">
+      <input type="search" id="kw" placeholder="제목 또는 작성자 검색">
+      <button class="btn secondary" id="kw-btn" type="button">검색</button>
+    </div>
+    <table class="board-table">
+      <thead><tr><th style="width:60px">번호</th><th>제목</th><th style="width:110px">이름</th><th style="width:110px">날짜</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="pagination" id="pager"></div>
+  </div>
+</main>
+<footer id="app-footer"></footer>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+DK.renderChrome('board');
+var PER = 10, page = 1, kw = '';
+function render() {
+  var posts = DK.Store.get(DK.K.posts, []).slice().sort(function (a, b) { return b.id - a.id; });
+  if (kw) posts = posts.filter(function (p) { return (p.title + p.writer).toLowerCase().indexOf(kw) > -1; });
+  var pages = Math.max(1, Math.ceil(posts.length / PER)); if (page > pages) page = pages;
+  var slice = posts.slice((page - 1) * PER, page * PER);
+  document.getElementById('rows').innerHTML = slice.length ? slice.map(function (p) {
+    return '<tr><td class="num">' + p.id + '</td><td class="title"><a href="board-view.html?id=' + p.id + '">' + DK.esc(p.title) + '</a></td><td>' + DK.esc(p.writer) + '</td><td class="date">' + DK.esc(p.date) + '</td></tr>';
+  }).join('') : '<tr><td colspan="4" class="empty">게시글이 없습니다.</td></tr>';
+  var h = '<button ' + (page === 1 ? 'disabled' : '') + ' data-p="' + (page - 1) + '">‹</button>';
+  for (var i = 1; i <= pages; i++) h += '<button class="' + (i === page ? 'on' : '') + '" data-p="' + i + '">' + i + '</button>';
+  h += '<button ' + (page === pages ? 'disabled' : '') + ' data-p="' + (page + 1) + '">›</button>';
+  document.getElementById('pager').innerHTML = h;
+}
+document.getElementById('pager').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b && !b.disabled) { page = +b.dataset.p; render(); } });
+function doSearch() { kw = document.getElementById('kw').value.trim().toLowerCase(); page = 1; render(); }
+document.getElementById('kw-btn').addEventListener('click', doSearch);
+document.getElementById('kw').addEventListener('keydown', function (e) { if (e.key === 'Enter') doSearch(); });
+document.getElementById('write-btn').addEventListener('click', function (e) {
+  if (!DK.Auth.current()) { e.preventDefault(); DK.toast('로그인 후 글을 작성할 수 있습니다.', 'err'); setTimeout(function () { location.href = 'login.html?next=board-form.html'; }, 900); }
+});
+render();
+</script>
+</body>
+</html>

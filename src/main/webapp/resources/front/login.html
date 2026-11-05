@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>로그인 - 목깨비의 취업시장</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header id="app-header"></header>
+<main class="container page">
+  <div class="card auth-box">
+    <h1>로그인</h1>
+    <form id="form" novalidate>
+      <div class="field"><label for="id">아이디</label><input type="text" id="id" autocomplete="username"><div class="error-msg"></div></div>
+      <div class="field"><label for="pw">비밀번호</label><input type="password" id="pw" autocomplete="current-password"><div class="error-msg"></div></div>
+      <button class="btn" style="width:100%" type="submit">로그인</button>
+    </form>
+    <p class="muted" style="text-align:center;margin-top:14px">아직 회원이 아니신가요? <a href="signup.html">회원가입</a></p>
+    <div class="notice-demo" style="margin-top:14px">
+      데모 계정<br>일반: <b>student1</b> / <b>student1!</b><br>관리자: <b>admin</b> / <b>admin1234!</b>
+    </div>
+  </div>
+</main>
+<footer id="app-footer"></footer>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+DK.renderChrome('login');
+document.getElementById('form').addEventListener('submit', function (e) {
+  e.preventDefault();
+  var id = document.getElementById('id'), pw = document.getElementById('pw'), ok = true;
+  DK.setErr(id, ''); DK.setErr(pw, '');
+  if (!id.value.trim()) { DK.setErr(id, '아이디를 입력해 주세요.'); ok = false; }
+  if (!pw.value) { DK.setErr(pw, '비밀번호를 입력해 주세요.'); ok = false; }
+  if (!ok) return;
+  if (!DK.Auth.login(id.value.trim(), pw.value)) { DK.setErr(pw, '아이디 또는 비밀번호가 올바르지 않습니다.'); DK.toast('로그인에 실패했습니다.', 'err'); return; }
+  DK.toast('로그인 되었습니다.', 'ok');
+  var next = DK.qs('next');
+  /* 오픈 리다이렉트 방지: 같은 폴더의 .html 상대경로만 허용 */
+  if (!next || !/^[\w\-]+\.html(\?[\w=&%\-]*)?$/.test(next)) next = 'index.html';
+  setTimeout(function () { location.href = next; }, 500);
+});
+</script>
+</body>
+</html>
