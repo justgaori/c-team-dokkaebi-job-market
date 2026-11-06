@@ -4,75 +4,143 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>목깨비의 취업시장</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=20261106c">
+<link rel="icon" type="image/png" href="img/favicon.png">
 </head>
 <body>
 <header id="app-header"></header>
 
-<section class="hero">
-  <div class="container">
-    <h1>흩어진 채용정보, 한곳에서 확인하세요</h1>
-    <p>목포대 재학생·졸업생을 위한 통합 취업 정보 서비스</p>
-    <form class="search-bar" action="jobs.html" method="get">
-      <input type="search" name="q" placeholder="직무, 회사명, 키워드를 검색해 보세요" aria-label="채용공고 검색">
-      <button class="btn" type="submit">검색</button>
-    </form>
+<section class="home-top" aria-labelledby="home-title">
+  <div class="container home-top-grid">
+    <div class="search-panel">
+      <h1 id="home-title">흩어진 채용정보를 한곳에서 찾아보세요</h1>
+      <p class="lead">사람인, 잡코리아, 원티드, 고용24, 기업 홈페이지의 공고를 모아 보여 드립니다.</p>
+      <form class="search-bar big" action="jobs.html" method="get" role="search">
+        <label class="sr-only" for="home-field">분야 선택</label>
+        <select id="home-field" name="field"></select>
+        <label class="sr-only" for="home-q">검색어</label>
+        <input type="search" id="home-q" name="q" placeholder="직무, 회사명, 키워드를 입력하세요">
+        <button class="btn" type="submit">검색</button>
+      </form>
+      <div class="search-shortcuts" id="shortcuts"></div>
+    </div>
+
+    <aside class="stat-box" aria-labelledby="stat-title">
+      <div class="stat-head"><h2 id="stat-title">채용정보 현황</h2><span class="base" id="st-base"></span></div>
+      <dl>
+        <div><dt>모집 중인 공고</dt><dd><b id="st-open">0</b>건</dd></div>
+        <div><dt>7일 안에 마감</dt><dd><b id="st-soon">0</b>건</dd></div>
+        <div><dt>신입 지원 가능</dt><dd><b id="st-new">0</b>건</dd></div>
+        <div><dt>최근 수집</dt><dd id="st-last">-</dd></div>
+      </dl>
+      <a class="btn secondary" href="jobs.html">채용정보 전체 보기</a>
+    </aside>
   </div>
 </section>
 
-<main class="container page">
-  <!-- 알림 (로그인 시) -->
-  <section class="card hidden" id="noti-card">
-    <div class="card-head"><h2>내 알림</h2><a href="alerts.html">전체 보기</a></div>
-    <ul class="noti-list" id="noti-list"></ul>
-  </section>
+<main class="container page home" id="main">
+  <div class="home-cols">
+    <section class="sec" aria-labelledby="h-jobs">
+      <div class="sec-head"><h2 id="h-jobs">최신 채용공고</h2><a class="more" id="jobs-more" href="jobs.html">더보기<span class="sr-only"> 최신 채용공고</span></a></div>
+      <div class="seg-tabs" aria-label="지역" id="area-tabs"></div>
+      <ul class="post-list" id="job-list" role="tabpanel"></ul>
+    </section>
 
-  <section class="card">
-    <div class="card-head"><h2>분야별 바로가기</h2></div>
-    <div class="chips" id="field-chips"></div>
-  </section>
+    <section class="sec" aria-labelledby="h-fields">
+      <div class="sec-head"><h2 id="h-fields">분야별 채용정보</h2></div>
+      <ul class="field-grid" id="field-chips"></ul>
+    </section>
+  </div>
 
-  <section class="card">
-    <div class="card-head"><h2>최신 채용공고</h2><a href="jobs.html">더 보기</a></div>
-    <div class="job-list" id="job-list"></div>
-  </section>
+  <div class="home-cols">
+    <section class="sec" aria-labelledby="h-board">
+      <div class="sec-head"><h2 id="h-board">정보공유 게시판</h2><a class="more" href="board.html">더보기<span class="sr-only"> 정보공유 게시판</span></a></div>
+      <ul class="post-list" id="post-rows"></ul>
+    </section>
 
-  <section class="card">
-    <div class="card-head"><h2>게시판 최신글</h2><a href="board.html">더 보기</a></div>
-    <table class="board-table">
-      <thead><tr><th>제목</th><th style="width:110px">이름</th><th style="width:110px">날짜</th></tr></thead>
-      <tbody id="post-rows"></tbody>
-    </table>
-  </section>
+    <!-- 로그인 시: 내 알림 / 비로그인 시: 이용 안내 -->
+    <section class="sec hidden" id="noti-card" aria-labelledby="h-noti">
+      <div class="sec-head"><h2 id="h-noti">내 알림</h2><a class="more" href="alerts.html">전체 보기<span class="sr-only"> 내 알림</span></a></div>
+      <ul class="noti-list" id="noti-list"></ul>
+    </section>
+
+    <section class="sec" id="guide-card" aria-labelledby="h-guide">
+      <div class="sec-head"><h2 id="h-guide">맞춤 알림 이용 안내</h2></div>
+      <ol class="guide-steps">
+        <li><strong>회원가입</strong><span>아이디, 비밀번호, 이름, 이메일만 입력하면 됩니다.</span></li>
+        <li><strong>관심 분야 선택</strong><span>맞춤 알림 메뉴에서 받고 싶은 분야를 고릅니다.</span></li>
+        <li><strong>새 공고 알림 확인</strong><span>관심 분야에 공고가 등록되면 알림으로 알려 드립니다.</span></li>
+      </ol>
+      <div class="btn-row guide-actions"><a class="btn" href="signup.html">회원가입</a><a class="btn secondary" href="login.html">로그인</a></div>
+    </section>
+  </div>
 </main>
 <footer id="app-footer"></footer>
 
-<script src="js/data.js"></script>
-<script src="js/app.js"></script>
-<script src="js/jobs.js"></script>
+<script src="js/data.js?v=20261106c"></script>
+<script src="js/app.js?v=20261106c"></script>
+<script src="js/jobs.js?v=20261106c"></script>
 <script>
 DK.renderChrome('home');
 var esc = DK.esc;
+var all = Jobs.all();
+var open = all.filter(function (j) { return j.status === '모집중'; });
 
-document.getElementById('field-chips').innerHTML = FIELDS.map(function (f) {
-  return '<a class="chip" href="jobs.html?field=' + encodeURIComponent(f) + '"><span>' + esc(f) + '</span></a>';
+/* 통합검색: 분야 선택 + 자주 찾는 분야 */
+document.getElementById('home-field').innerHTML = '<option value="">전체 분야</option>' + FIELDS.map(function (f) {
+  return '<option>' + esc(f) + '</option>';
+}).join('');
+document.getElementById('shortcuts').innerHTML = '<strong>자주 찾는 분야</strong>' + ['IT·개발', '공공·공기업', '경영·사무', '생산·제조'].map(function (f) {
+  return '<a href="jobs.html?field=' + encodeURIComponent(f) + '">' + esc(f) + '</a>';
 }).join('');
 
+/* 채용정보 현황 */
+function daysLeft(j) { return Math.ceil((new Date(j.end) - new Date(DK.today())) / 86400000); }
+document.getElementById('st-base').textContent = DK.today() + ' 기준';
+document.getElementById('st-open').textContent = open.length;
+document.getElementById('st-soon').textContent = open.filter(function (j) { var d = daysLeft(j); return d >= 0 && d <= 7; }).length;
+document.getElementById('st-new').textContent = open.filter(function (j) { return j.career === '신입' || j.career === '경력 무관'; }).length;
+var last = all.reduce(function (m, j) { return j.collectedAt > m ? j.collectedAt : m; }, '');
+document.getElementById('st-last').textContent = last || '-';
+
+/* 분야별 채용정보 (모집 중 건수) */
+document.getElementById('field-chips').innerHTML = FIELDS.map(function (f) {
+  var c = open.filter(function (j) { return j.field === f; }).length;
+  return '<li><a href="jobs.html?field=' + encodeURIComponent(f) + '"><span class="fname">' + esc(f) + '</span><span class="fcount">모집 중 <b>' + c + '</b>건</span></a></li>';
+}).join('');
+
+/* 최신 채용공고 + 지역(권역) 탭 */
+var area = '';
+var jobList = document.getElementById('job-list');
+DK.segTabs(document.getElementById('area-tabs'), jobList, [{ value: '', label: '전체', count: open.length }].concat(Object.keys(Jobs.AREAS).map(function (a) {
+  return { value: a, label: a, title: Jobs.AREAS[a].join(', '), count: open.filter(function (j) { return Jobs.inArea(j, a); }).length };
+})), '', function (v) { area = v; renderJobs(); });
 function renderJobs() {
-  var list = Jobs.all().filter(function (j) { return j.status === '모집중'; }).sort(function (a, b) { return a.collectedAt < b.collectedAt ? 1 : -1; }).slice(0, 5);
-  document.getElementById('job-list').innerHTML = list.map(function (j) { return Jobs.card(j); }).join('');
+  var list = open.filter(function (j) { return !area || Jobs.inArea(j, area); })
+    .sort(function (a, b) { return a.collectedAt < b.collectedAt ? 1 : -1; }).slice(0, 5);
+  jobList.innerHTML = list.length ? list.map(function (j) {
+    return '<li><a class="row" href="jobs.html?id=' + j.id + '" data-detail="' + j.id + '">' +
+      '<span class="pl-tags">' + Jobs.statusTag(j) + '</span>' +
+      '<span class="pl-title">' + esc(j.title) + '</span>' +
+      '<span class="pl-date">' + esc(j.end) + ' 마감</span>' +
+      '<span class="pl-sub">' + esc(j.company) + Jobs.ctypeTag(j) + '<span class="sep">' + esc(j.region) + '</span><span class="sep">' + esc(j.empType) + '</span></span></a></li>';
+  }).join('') : '<li class="empty">' + (area ? esc(area) + '(' + esc(Jobs.AREAS[area].join(', ')) + ')에 모집 중인 공고가 없습니다.' : '모집 중인 공고가 없습니다.') + '</li>';
+  document.getElementById('jobs-more').href = 'jobs.html' + (area ? '?region=' + encodeURIComponent('area:' + area) : '');
 }
-Jobs.bind(document.getElementById('job-list'), renderJobs);
+Jobs.bind(jobList, renderJobs);
 renderJobs();
 
-var posts = DK.Store.get(DK.K.posts, []).slice().sort(function (a, b) { return b.id - a.id; }).slice(0, 5);
-document.getElementById('post-rows').innerHTML = posts.map(function (p) {
-  return '<tr><td class="title"><a href="board-view.html?id=' + p.id + '">' + esc(p.title) + '</a></td><td>' + esc(p.writer) + '</td><td class="date">' + esc(p.date) + '</td></tr>';
-}).join('');
+/* 게시판 최신글 (구분 표시) */
+var posts = DK.Posts.all().sort(function (a, b) { return b.id - a.id; }).slice(0, 5);
+document.getElementById('post-rows').innerHTML = posts.length ? posts.map(function (p) {
+  return '<li><a class="row simple" href="board-view.html?id=' + p.id + '"><span class="pl-title">' + DK.Posts.catTag(p.category) + ' ' + esc(p.title) + '</span><span class="pl-date">' + esc(p.writer) + '<span class="sep">' + esc(p.date) + '</span></span></a></li>';
+}).join('') : '<li class="empty">등록된 게시글이 없습니다.</li>';
 
+/* 로그인 시 내 알림 */
 if (DK.Auth.current()) {
-  var ns = DK.Noti.mine().slice(0, 3);
-  var c = document.getElementById('noti-card'); c.classList.remove('hidden');
+  var ns = DK.Noti.mine().slice(0, 4);
+  document.getElementById('noti-card').classList.remove('hidden');
+  document.getElementById('guide-card').classList.add('hidden');
   document.getElementById('noti-list').innerHTML = ns.length ? ns.map(function (n) {
     var external = /^https?:\/\//i.test(n.link || '');
     var href = external ? DK.safeUrl(n.link) : (/^[\w\-]+\.html(\?[\w=&%\-]*)?$/.test(n.link || '') ? n.link : '#');

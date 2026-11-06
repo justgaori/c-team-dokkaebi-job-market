@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서비스 소개 - 목깨비의 취업시장</title>
+<link rel="stylesheet" href="css/style.css?v=20261106c">
+<link rel="icon" type="image/png" href="img/favicon.png">
+</head>
+<body>
+<header id="app-header"></header>
+<div class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="현재 위치"><ol><li><a href="index.html">홈</a></li><li aria-current="page">서비스 소개</li></ol></nav>
+    <h1>서비스 소개</h1>
+    <p>여러 사이트에 흩어진 채용정보를 한곳에서 검색하고 비교할 수 있도록 만든 통합 채용정보 서비스입니다.</p>
+  </div>
+</div>
+
+<main class="container page about" id="main">
+  <section class="sec" aria-labelledby="h-purpose">
+    <div class="sec-head"><h2 id="h-purpose">서비스 목적</h2></div>
+    <div class="about-text">
+      <p>채용정보는 여러 구인·구직 사이트와 기업 홈페이지에 나뉘어 올라오고, 공고마다 근무 조건과 지원 자격을 적는 방식도 다릅니다. 그래서 맞는 공고를 찾으려면 여러 사이트를 돌아다니며 하나씩 확인해야 합니다.</p>
+      <p>목깨비의 취업시장은 목포대학교 재학생과 졸업생이 이런 수고 없이 공고를 한곳에서 찾고, 같은 형식으로 비교한 뒤 지원 경로까지 바로 확인할 수 있도록 만들었습니다.</p>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-features">
+    <div class="sec-head"><h2 id="h-features">주요 기능</h2></div>
+    <ul class="feature-grid">
+      <li><a href="jobs.html"><strong>채용정보 통합 검색</strong><span>기업 구분, 직무, 지역, 경력, 고용 형태 조건으로 공고를 찾습니다.</span></a></li>
+      <li><a href="jobs.html"><strong>관심 공고 저장·비교</strong><span>마음에 드는 공고를 저장하고 최대 3개까지 조건을 나란히 비교합니다.</span></a></li>
+      <li><a href="board.html"><strong>정보공유 게시판</strong><span>재학생과 졸업생이 취업 후기, 스터디, 지역 소식을 나눕니다.</span></a></li>
+      <li><a href="alerts.html"><strong>맞춤 알림</strong><span>관심 분야를 고르면 새 공고가 등록될 때 알림을 받습니다.</span></a></li>
+    </ul>
+  </section>
+
+  <section class="sec" aria-labelledby="h-sources">
+    <div class="sec-head"><h2 id="h-sources">채용정보 수집 출처</h2></div>
+    <p class="sec-desc">아래 출처의 공고를 모아 같은 항목으로 정리해 보여 드립니다. 지원은 각 공고의 원문 또는 지원 경로에서 진행합니다.</p>
+    <div class="table-scroll">
+      <table class="info-table">
+        <caption class="sr-only">채용정보 수집 출처: 출처, 유형, 현재 수집된 공고 수</caption>
+        <thead><tr><th scope="col" style="width:200px">출처</th><th scope="col">유형</th><th scope="col" style="width:180px">수집된 공고</th></tr></thead>
+        <tbody id="source-rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-guide">
+    <div class="sec-head"><h2 id="h-guide">공고 정보 안내</h2></div>
+    <div class="grid two about-guide">
+      <div>
+        <h3>기업 구분</h3>
+        <dl class="kv">
+          <dt>공기업</dt><dd>국가나 지방자치단체가 운영하거나 출자한 기업 (공사, 공단 등)</dd>
+          <dt>대기업</dt><dd>공정거래위원회가 지정한 대규모 기업집단에 속하는 기업</dd>
+          <dt>중견기업</dt><dd>중소기업 규모 기준은 넘지만 대기업에는 속하지 않는 기업</dd>
+          <dt>중소기업</dt><dd>「중소기업기본법」의 규모 기준에 해당하는 기업</dd>
+        </dl>
+      </div>
+      <div>
+        <h3>공고 상태</h3>
+        <dl class="kv status-kv">
+          <dt><span class="tag green">모집중</span></dt><dd>지금 지원할 수 있는 공고입니다.</dd>
+          <dt><span class="tag dday">D-3</span></dt><dd>마감까지 7일 이내로 남은 공고입니다.</dd>
+          <dt><span class="tag red">마감</span></dt><dd>모집 기간이 끝난 공고입니다.</dd>
+          <dt><span class="tag orange">원문 확인 불가</span></dt><dd>출처에서 원문을 더 이상 확인할 수 없는 공고입니다.</dd>
+        </dl>
+      </div>
+    </div>
+    <p class="sec-desc">공고마다 기업 구분, 직무(분야), 지역, 경력, 고용 형태, 모집 기간, 출처, 지원 경로를 같은 형식으로 보여 드립니다.</p>
+  </section>
+
+  <section class="sec" aria-labelledby="h-team">
+    <div class="sec-head"><h2 id="h-team">운영</h2></div>
+    <p class="sec-desc">국립목포대학교 컴퓨터공학과 C팀이 정보시스템구축및관리 수업 프로젝트로 만들고 있습니다.</p>
+    <div class="table-scroll">
+      <table class="info-table">
+        <caption class="sr-only">운영 체계: 구분, 담당, 주요 역할</caption>
+        <thead><tr><th scope="col" style="width:120px">구분</th><th scope="col" style="width:160px">담당</th><th scope="col">주요 역할</th></tr></thead>
+        <tbody>
+          <tr><td class="c">PM</td><td class="c">최수인</td><td>프로젝트 일정과 범위 총괄, 요구사항 정리와 우선순위 결정</td></tr>
+          <tr><td class="c">QA</td><td class="c">서상원</td><td>요구사항 반영 여부 검토, 검색·저장·비교·지원 경로 기능 테스트</td></tr>
+          <tr><td class="c">SE</td><td class="c">김동주, 김가온</td><td>채용정보 출처 연계 조사와 데이터 설계, 기능과 사용자 화면 구현</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<footer id="app-footer"></footer>
+
+<script src="js/data.js?v=20261106c"></script>
+<script src="js/app.js?v=20261106c"></script>
+<script src="js/jobs.js?v=20261106c"></script>
+<script>
+DK.renderChrome('about');
+var esc = DK.esc, jobs = Jobs.all();
+var SOURCE_TYPE = { '사람인': '민간 채용 사이트', '잡코리아': '민간 채용 사이트', '원티드': '민간 채용 사이트', '고용24': '공공 고용서비스', '기업 홈페이지': '기업 채용 페이지' };
+document.getElementById('source-rows').innerHTML = SOURCES.map(function (s) {
+  var all = jobs.filter(function (j) { return j.source === s; });
+  var open = all.filter(function (j) { return j.status === '모집중'; }).length;
+  return '<tr><th scope="row">' + esc(s) + '</th><td>' + esc(SOURCE_TYPE[s] || '-') + '</td>' +
+    '<td class="c">' + all.length + '건 <span class="muted">(모집 중 ' + open + '건)</span></td></tr>';
+}).join('');
+</script>
+</body>
+</html>

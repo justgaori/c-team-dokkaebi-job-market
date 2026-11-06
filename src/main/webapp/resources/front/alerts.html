@@ -3,29 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>알림 - 목깨비의 취업시장</title>
-<link rel="stylesheet" href="css/style.css">
+<title>맞춤 알림 - 목깨비의 취업시장</title>
+<link rel="stylesheet" href="css/style.css?v=20261106c">
+<link rel="icon" type="image/png" href="img/favicon.png">
 </head>
 <body>
 <header id="app-header"></header>
-<main class="container page">
-  <div class="page-title"><div><h1>알림</h1><div class="muted">관심 분야에 새 공고가 등록되면 알려드립니다.</div></div></div>
-
+<div class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="현재 위치"><ol><li><a href="index.html">홈</a></li><li aria-current="page">맞춤 알림</li></ol></nav>
+    <h1>맞춤 알림</h1>
+    <p>관심 분야를 선택해 두면 새 공고가 등록될 때 알려 드립니다.</p>
+  </div>
+</div>
+<main class="container page" id="main">
   <div class="grid two">
-    <section class="card">
-      <div class="card-head"><h2>관심 분야 설정</h2></div>
-      <div class="chips" id="chips"></div>
-      <div class="btn-row" style="margin-top:14px"><button class="btn" id="save-int">저장</button></div>
+    <section class="card" aria-labelledby="h-int">
+      <div class="card-head"><h2 id="h-int">관심 분야 설정</h2></div>
+      <p class="muted" style="margin-top:0">알림을 받을 분야를 모두 선택한 뒤 저장해 주세요.</p>
+      <div class="chips" id="chips" role="group" aria-labelledby="h-int"></div>
+      <div class="btn-row" style="margin-top:18px"><button type="button" class="btn" id="save-int">관심 분야 저장</button></div>
     </section>
 
-    <section class="card">
-      <div class="card-head"><h2>내 알림</h2><button class="btn small secondary" id="read-all">모두 읽음</button></div>
+    <section class="card" aria-labelledby="h-my">
+      <div class="card-head"><h2 id="h-my">내 알림</h2><button type="button" class="btn small secondary" id="read-all">모두 읽음</button></div>
       <ul class="noti-list" id="notis"></ul>
     </section>
   </div>
 
   <!-- 관리자 전용 -->
-  <section class="card hidden" id="admin-box">
+  <section class="card admin-box hidden" id="admin-box">
     <div class="card-head"><h2>관리자 메시지 / 신규 공고 알림</h2><span class="tag orange">관리자 전용</span></div>
     <div class="grid two">
       <form id="msg-form" novalidate>
@@ -39,6 +46,7 @@
         <h3>신규 공고 등록 시 알림 테스트</h3>
         <p class="muted" style="margin-top:0">실제로는 API 수집 후 자동 발송됩니다. 화면 확인용 시뮬레이션입니다.</p>
         <div class="field"><label for="j-title">공고 제목</label><input type="text" id="j-title" maxlength="80"><div class="error-msg"></div></div>
+        <div class="field"><label for="j-ctype">기업 구분</label><select id="j-ctype"></select></div>
         <div class="field"><label for="j-field">분야</label><select id="j-field"></select></div>
         <button class="btn accent" type="submit">공고 등록 + 알림 발송</button>
       </form>
@@ -46,8 +54,8 @@
   </section>
 </main>
 <footer id="app-footer"></footer>
-<script src="js/data.js"></script>
-<script src="js/app.js"></script>
+<script src="js/data.js?v=20261106c"></script>
+<script src="js/app.js?v=20261106c"></script>
 <script>
 DK.renderChrome('alerts');
 if (DK.Auth.require()) {
@@ -89,6 +97,7 @@ if (DK.Auth.require()) {
     $('admin-box').classList.remove('hidden');
     var users = DK.Store.get(DK.K.users, []).filter(function (u) { return u.role !== 'ADMIN'; });
     $('m-to').innerHTML = '<option value="*">전체 사용자</option>' + users.map(function (u) { return '<option value="' + DK.esc(u.id) + '">' + DK.esc(u.name) + ' (' + DK.esc(u.id) + ')</option>'; }).join('');
+    $('j-ctype').innerHTML = COMPANY_TYPES.map(function (t) { return '<option>' + DK.esc(t) + '</option>'; }).join('');
     $('j-field').innerHTML = FIELDS.map(function (f) { return '<option>' + DK.esc(f) + '</option>'; }).join('');
 
     $('msg-form').addEventListener('submit', function (e) {
@@ -107,7 +116,7 @@ if (DK.Auth.require()) {
       var t = $('j-title'); DK.setErr(t, '');
       if (!t.value.trim()) { DK.setErr(t, '공고 제목을 입력해 주세요.'); return; }
       var jobs = DK.Store.get(DK.K.jobs, []), id = DK.nextId(jobs), field = $('j-field').value;
-      jobs.push({ id: id, title: t.value.trim(), company: '(데모) 신규 기업', field: field, region: '전국', career: '경력 무관', empType: '정규직', start: DK.today(), end: '2026-12-31', source: '기업 홈페이지', applyUrl: 'https://example.com/apply/' + id, status: '모집중', collectedAt: DK.now(), summary: '관리자가 등록한 데모 공고입니다.' });
+      jobs.push({ id: id, title: t.value.trim(), company: '(데모) 신규 기업', companyType: $('j-ctype').value, field: field, region: '전국', career: '경력 무관', empType: '정규직', start: DK.today(), end: '2026-12-31', source: '기업 홈페이지', applyUrl: 'https://example.com/apply/' + id, status: '모집중', collectedAt: DK.now(), summary: '관리자가 등록한 데모 공고입니다.' });
       DK.Store.set(DK.K.jobs, jobs);
       var targets = DK.Store.get(DK.K.users, []).filter(function (u) { return u.interests && u.interests.indexOf(field) > -1; });
       targets.forEach(function (u) { DK.Noti.push({ userId: u.id, type: 'JOB', title: t.value.trim(), field: field, link: 'jobs.html?id=' + id }); });

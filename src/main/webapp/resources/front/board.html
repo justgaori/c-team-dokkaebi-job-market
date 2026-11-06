@@ -3,45 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>게시판 - 목깨비의 취업시장</title>
-<link rel="stylesheet" href="css/style.css">
+<title>정보공유 게시판 - 목깨비의 취업시장</title>
+<link rel="stylesheet" href="css/style.css?v=20261106c">
+<link rel="icon" type="image/png" href="img/favicon.png">
 </head>
 <body>
 <header id="app-header"></header>
-<main class="container page">
-  <div class="page-title">
-    <div><h1>재학생·졸업생 정보 공유 게시판</h1><div class="muted">취업 후기, 스터디, 지역 소식을 자유롭게 공유해 보세요.</div></div>
+<div class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="현재 위치"><ol><li><a href="index.html">홈</a></li><li aria-current="page">정보공유 게시판</li></ol></nav>
+    <h1>정보공유 게시판</h1>
+    <p>재학생, 졸업생, 일반 게시판으로 나누어 취업 후기, 스터디, 지역 소식을 나누는 공간입니다.</p>
+  </div>
+</div>
+<main class="container page" id="main">
+  <div class="seg-tabs board-tabs" id="cat-tabs" aria-label="게시판 구분"></div>
+  <div id="board-panel">
+  <div class="board-top">
+    <div class="total" aria-live="polite">전체 <b id="total">0</b>건 <span class="muted" id="page-info"></span></div>
+    <div class="search-bar" role="search">
+      <label class="sr-only" for="kw">제목 또는 이름</label>
+      <input type="search" id="kw" placeholder="제목 또는 이름 검색">
+      <button class="btn accent" id="kw-btn" type="button">검색</button>
+    </div>
+  </div>
+  <table class="board-table">
+    <caption class="sr-only">정보공유 게시판 목록: 번호, 구분, 제목, 이름, 날짜</caption>
+    <thead><tr><th scope="col" style="width:80px">번호</th><th scope="col" style="width:100px">구분</th><th scope="col">제목</th><th scope="col" style="width:130px">이름</th><th scope="col" style="width:130px">날짜</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div class="board-bottom">
+    <div class="pagination" id="pager"></div>
     <a class="btn" id="write-btn" href="board-form.html">글쓰기</a>
   </div>
-  <div class="card">
-    <div class="search-bar" style="max-width:none;margin-bottom:12px">
-      <input type="search" id="kw" placeholder="제목 또는 작성자 검색">
-      <button class="btn secondary" id="kw-btn" type="button">검색</button>
-    </div>
-    <table class="board-table">
-      <thead><tr><th style="width:60px">번호</th><th>제목</th><th style="width:110px">이름</th><th style="width:110px">날짜</th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-    <div class="pagination" id="pager"></div>
   </div>
 </main>
 <footer id="app-footer"></footer>
-<script src="js/data.js"></script>
-<script src="js/app.js"></script>
+<script src="js/data.js?v=20261106c"></script>
+<script src="js/app.js?v=20261106c"></script>
 <script>
 DK.renderChrome('board');
 var PER = 10, page = 1, kw = '';
+var cat = POST_CATS.indexOf(DK.qs('cat')) > -1 ? DK.qs('cat') : '';
+var allPosts = DK.Posts.all();
+
+/* 구분 탭: 전체 / 재학생 / 졸업생 / 일반 (선택한 구분은 주소에 남겨 뒤로 가기 때 유지) */
+DK.segTabs(document.getElementById('cat-tabs'), document.getElementById('board-panel'),
+  [{ value: '', label: '전체', count: allPosts.length }].concat(POST_CATS.map(function (c) {
+    return { value: c, label: c, count: allPosts.filter(function (p) { return p.category === c; }).length };
+  })), cat, function (v) {
+    cat = v; page = 1;
+    try { history.replaceState(null, '', cat ? '?cat=' + encodeURIComponent(cat) : location.pathname); } catch (e) {}
+    render();
+  });
+
+function writeHref() { return 'board-form.html' + (cat ? '?cat=' + encodeURIComponent(cat) : ''); }
 function render() {
-  var posts = DK.Store.get(DK.K.posts, []).slice().sort(function (a, b) { return b.id - a.id; });
+  var posts = allPosts.slice().sort(function (a, b) { return b.id - a.id; });
+  if (cat) posts = posts.filter(function (p) { return p.category === cat; });
   if (kw) posts = posts.filter(function (p) { return (p.title + p.writer).toLowerCase().indexOf(kw) > -1; });
   var pages = Math.max(1, Math.ceil(posts.length / PER)); if (page > pages) page = pages;
   var slice = posts.slice((page - 1) * PER, page * PER);
+  document.getElementById('total').textContent = posts.length;
+  document.getElementById('page-info').textContent = '(' + page + ' / ' + pages + ' 페이지)';
+  document.getElementById('write-btn').href = writeHref();
+  document.getElementById('write-btn').textContent = cat ? cat + ' 게시판에 글쓰기' : '글쓰기';
   document.getElementById('rows').innerHTML = slice.length ? slice.map(function (p) {
-    return '<tr><td class="num">' + p.id + '</td><td class="title"><a href="board-view.html?id=' + p.id + '">' + DK.esc(p.title) + '</a></td><td>' + DK.esc(p.writer) + '</td><td class="date">' + DK.esc(p.date) + '</td></tr>';
-  }).join('') : '<tr><td colspan="4" class="empty">게시글이 없습니다.</td></tr>';
-  var h = '<button ' + (page === 1 ? 'disabled' : '') + ' data-p="' + (page - 1) + '">‹</button>';
-  for (var i = 1; i <= pages; i++) h += '<button class="' + (i === page ? 'on' : '') + '" data-p="' + i + '">' + i + '</button>';
-  h += '<button ' + (page === pages ? 'disabled' : '') + ' data-p="' + (page + 1) + '">›</button>';
+    return '<tr><td class="num">' + p.id + '</td><td class="cat">' + DK.Posts.catTag(p.category) + '</td><td class="title"><a href="board-view.html?id=' + p.id + '">' + DK.esc(p.title) + '</a></td><td class="writer">' + DK.esc(p.writer) + '</td><td class="date">' + DK.esc(p.date) + '</td></tr>';
+  }).join('') : '<tr><td colspan="5" class="empty">' + (kw ? '검색 결과가 없습니다. 다른 검색어를 입력해 보세요.' : (cat ? cat + ' 게시판에 등록된 글이 없습니다.' : '등록된 게시글이 없습니다.')) + '</td></tr>';
+  var h = '<button type="button" ' + (page === 1 ? 'disabled' : '') + ' data-p="' + (page - 1) + '" aria-label="이전 페이지">‹</button>';
+  for (var i = 1; i <= pages; i++) h += '<button type="button" class="' + (i === page ? 'on' : '') + '" data-p="' + i + '"' + (i === page ? ' aria-current="page"' : '') + ' aria-label="' + i + '페이지">' + i + '</button>';
+  h += '<button type="button" ' + (page === pages ? 'disabled' : '') + ' data-p="' + (page + 1) + '" aria-label="다음 페이지">›</button>';
   document.getElementById('pager').innerHTML = h;
 }
 document.getElementById('pager').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b && !b.disabled) { page = +b.dataset.p; render(); } });
@@ -49,7 +81,7 @@ function doSearch() { kw = document.getElementById('kw').value.trim().toLowerCas
 document.getElementById('kw-btn').addEventListener('click', doSearch);
 document.getElementById('kw').addEventListener('keydown', function (e) { if (e.key === 'Enter') doSearch(); });
 document.getElementById('write-btn').addEventListener('click', function (e) {
-  if (!DK.Auth.current()) { e.preventDefault(); DK.toast('로그인 후 글을 작성할 수 있습니다.', 'err'); setTimeout(function () { location.href = 'login.html?next=board-form.html'; }, 900); }
+  if (!DK.Auth.current()) { e.preventDefault(); DK.toast('로그인 후 글을 작성할 수 있습니다.', 'err'); setTimeout(function () { location.href = 'login.html?next=' + encodeURIComponent(writeHref()); }, 900); }
 });
 render();
 </script>

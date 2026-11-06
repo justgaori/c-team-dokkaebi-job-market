@@ -4,48 +4,70 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>게시글 작성 - 목깨비의 취업시장</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=20261106c">
+<link rel="icon" type="image/png" href="img/favicon.png">
 </head>
 <body>
 <header id="app-header"></header>
-<main class="container page">
-  <div class="card">
+<div class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="현재 위치"><ol><li><a href="index.html">홈</a></li><li><a href="board.html">정보공유 게시판</a></li><li aria-current="page" id="crumb">글쓰기</li></ol></nav>
     <h1 id="head">글쓰기</h1>
-    <form id="form" novalidate>
-      <div class="field"><label for="title">제목</label><input type="text" id="title" maxlength="100"><div class="error-msg"></div></div>
-      <div class="field"><label for="content">내용</label><textarea id="content" maxlength="2000"></textarea><div class="hint"><span id="cnt">0</span> / 2000자</div><div class="error-msg"></div></div>
-      <div class="btn-row"><button class="btn" type="submit">저장</button><a class="btn secondary" id="cancel" href="board.html">취소</a></div>
-    </form>
   </div>
+</div>
+<main class="container page" id="main">
+  <form id="form" novalidate>
+    <p class="req-note"><span class="req" aria-hidden="true">*</span> 표시는 필수 입력 항목입니다.</p>
+    <div class="form-table">
+      <div class="field"><div class="field-label" id="cat-label">구분<span class="req" aria-hidden="true">*</span></div>
+        <div class="field-body"><div class="radio-row" id="cats" role="radiogroup" aria-labelledby="cat-label" aria-required="true"></div><div class="error-msg"></div></div></div>
+      <div class="field"><label for="title">제목<span class="req" aria-hidden="true">*</span></label>
+        <div class="field-body"><input type="text" id="title" maxlength="100" required placeholder="제목을 입력해 주세요"><div class="error-msg"></div></div></div>
+      <div class="field"><label for="content">내용<span class="req" aria-hidden="true">*</span></label>
+        <div class="field-body"><textarea id="content" maxlength="2000" required aria-describedby="cnt-hint" placeholder="내용을 입력해 주세요"></textarea>
+          <div class="hint count" id="cnt-hint"><span id="cnt">0</span> / 2000자</div><div class="error-msg"></div></div></div>
+    </div>
+    <div class="btn-row form-actions"><button class="btn" type="submit">저장</button><a class="btn secondary" id="cancel" href="board.html">취소</a></div>
+  </form>
 </main>
 <footer id="app-footer"></footer>
-<script src="js/data.js"></script>
-<script src="js/app.js"></script>
+<script src="js/data.js?v=20261106c"></script>
+<script src="js/app.js?v=20261106c"></script>
 <script>
 DK.renderChrome('board');
 if (DK.Auth.require()) {
   var u = DK.Auth.current(), id = +DK.qs('id') || 0;
-  var posts = DK.Store.get(DK.K.posts, []);
+  var posts = DK.Posts.all();
   var editing = id ? posts.filter(function (x) { return x.id === id; })[0] : null;
   var t = document.getElementById('title'), c = document.getElementById('content');
   if (id && !editing) { DK.toast('존재하지 않는 게시글입니다.', 'err'); setTimeout(function () { location.href = 'board.html'; }, 900); }
   else if (editing && !(editing.writerId === u.id || u.role === 'ADMIN')) { DK.toast('작성자 본인 또는 관리자만 수정할 수 있습니다.', 'err'); setTimeout(function () { location.href = 'board.html'; }, 1000); }
   else {
-    if (editing) { document.getElementById('head').textContent = '글 수정'; t.value = editing.title; c.value = editing.content; document.getElementById('cancel').href = 'board-view.html?id=' + id; }
+    /* 구분: 수정 중인 글의 구분 > 목록에서 고른 구분(?cat=) 순으로 미리 선택 */
+    var pre = editing ? editing.category : (POST_CATS.indexOf(DK.qs('cat')) > -1 ? DK.qs('cat') : '');
+    document.getElementById('cats').innerHTML = POST_CATS.map(function (k, i) {
+      return '<label class="radio"><input type="radio" name="cat" id="cat-' + i + '" value="' + DK.esc(k) + '"' + (k === pre ? ' checked' : '') + '>' + DK.esc(k) + '</label>';
+    }).join('');
+    if (!editing && pre) document.getElementById('cancel').href = 'board.html?cat=' + encodeURIComponent(pre);
+    var catInputs = document.querySelectorAll('#cats input');
+    var picked = function () { var c = document.querySelector('#cats input:checked'); return c ? c.value : ''; };
+    Array.prototype.forEach.call(catInputs, function (r) { r.addEventListener('change', function () { DK.setErr(catInputs[0], ''); }); });
+    if (editing) { document.getElementById('head').textContent = '글 수정'; document.getElementById('crumb').textContent = '글 수정'; document.title = '글 수정 - 목깨비의 취업시장'; t.value = editing.title; c.value = editing.content; document.getElementById('cancel').href = 'board-view.html?id=' + id; }
     var upd = function () { document.getElementById('cnt').textContent = c.value.length; };
     c.addEventListener('input', function () { upd(); if (c.value.trim()) DK.setErr(c, ''); }); t.addEventListener('input', function () { if (t.value.trim()) DK.setErr(t, ''); }); upd();
     document.getElementById('form').addEventListener('submit', function (e) {
       e.preventDefault();
       var ok = true;
+      if (!picked()) { DK.setErr(catInputs[0], '구분(재학생, 졸업생, 일반)을 선택해 주세요.'); ok = false; }
       if (!t.value.trim()) { DK.setErr(t, '제목을 입력해 주세요.'); ok = false; }
       if (!c.value.trim()) { DK.setErr(c, '내용을 입력해 주세요.'); ok = false; }
       if (!ok) { DK.toast('입력 내용을 확인해 주세요.', 'err'); return; }
       if (editing) {
-        editing.title = t.value.trim(); editing.content = c.value;
+        editing.category = picked(); editing.title = t.value.trim(); editing.content = c.value;
         DK.Store.set(DK.K.posts, posts); DK.toast('게시글이 수정되었습니다.', 'ok');
         setTimeout(function () { location.href = 'board-view.html?id=' + id; }, 700);
       } else {
-        var np = { id: DK.nextId(posts), title: t.value.trim(), content: c.value, writer: u.name, writerId: u.id, date: DK.today() };
+        var np = { id: DK.nextId(posts), category: picked(), title: t.value.trim(), content: c.value, writer: u.name, writerId: u.id, date: DK.today() };
         posts.push(np); DK.Store.set(DK.K.posts, posts); DK.toast('게시글이 등록되었습니다.', 'ok');
         setTimeout(function () { location.href = 'board-view.html?id=' + np.id; }, 700);
       }

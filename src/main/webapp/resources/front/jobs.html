@@ -4,37 +4,46 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>채용정보 - 목깨비의 취업시장</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=20261106c">
+<link rel="icon" type="image/png" href="img/favicon.png">
 </head>
 <body>
 <header id="app-header"></header>
-<main class="container page">
-  <div class="page-title"><div><h1>채용정보</h1><div class="muted">여러 사이트의 공고를 한곳에서 검색하고 비교하세요.</div></div></div>
-
-  <div class="card">
-    <div class="search-bar" style="max-width:none;margin-bottom:12px">
-      <input type="search" id="q" placeholder="직무, 회사명, 키워드 검색">
-      <button class="btn" id="search-btn" type="button">검색</button>
+<div class="page-head">
+  <div class="container">
+    <nav class="breadcrumb" aria-label="현재 위치"><ol><li><a href="index.html">홈</a></li><li aria-current="page">채용정보</li></ol></nav>
+    <h1>채용정보</h1>
+    <p>여러 사이트의 공고를 한곳에서 검색하고 비교하세요.</p>
+  </div>
+</div>
+<main class="container page" id="main">
+  <section class="search-box" aria-label="채용공고 검색 조건">
+    <div class="search-bar" role="search">
+      <label class="sr-only" for="q">검색어</label>
+      <input type="search" id="q" placeholder="직무, 회사명, 키워드">
+      <button class="btn accent" id="search-btn" type="button">검색</button>
     </div>
     <div class="filters">
+      <div><label for="f-ctype">기업 구분</label><select id="f-ctype"></select></div>
       <div><label for="f-field">분야</label><select id="f-field"></select></div>
       <div><label for="f-region">지역</label><select id="f-region"></select></div>
       <div><label for="f-career">경력</label><select id="f-career"></select></div>
       <div><label for="f-emp">고용 형태</label><select id="f-emp"></select></div>
       <div><label for="f-status">상태</label>
         <select id="f-status"><option value="">전체</option><option value="모집중" selected>모집중</option><option value="마감">마감</option><option value="원문확인불가">원문 확인 불가</option></select></div>
-      <div class="btn-cell"><button class="btn secondary" id="reset" type="button">초기화</button></div>
+      <div class="btn-cell"><button class="btn secondary" id="reset" type="button">조건 초기화</button></div>
     </div>
-    <div class="result-info">
-      <div><b id="count">0</b>건의 공고 <span class="muted" id="saved-info"></span></div>
-      <div class="btn-row">
-        <label class="check-label"><input type="checkbox" id="only-saved"> 관심 공고만 보기</label>
-        <select id="sort" aria-label="정렬"><option value="new">최신 수집순</option><option value="end">마감 임박순</option></select>
-      </div>
+  </section>
+
+  <div class="result-info">
+    <div class="total" aria-live="polite">총 <b id="count">0</b>건 <span class="muted" id="saved-info"></span></div>
+    <div class="btn-row">
+      <label class="check-label"><input type="checkbox" id="only-saved"> 관심 공고만 보기</label>
+      <select id="sort" aria-label="정렬 기준"><option value="new">최신 수집순</option><option value="end">마감 임박순</option></select>
     </div>
-    <div class="job-list" id="list"></div>
-    <div class="pagination" id="pager"></div>
   </div>
+  <div class="job-list" id="list"></div>
+  <div class="pagination" id="pager"></div>
 </main>
 
 <div class="compare-bar hidden" id="cmp-bar">
@@ -43,23 +52,26 @@
 </div>
 <footer id="app-footer"></footer>
 
-<script src="js/data.js"></script>
-<script src="js/app.js"></script>
-<script src="js/jobs.js"></script>
+<script src="js/data.js?v=20261106c"></script>
+<script src="js/app.js?v=20261106c"></script>
+<script src="js/jobs.js?v=20261106c"></script>
 <script>
 DK.renderChrome('jobs');
 var $ = function (i) { return document.getElementById(i); };
 function fill(id, arr, label) { $(id).innerHTML = '<option value="">' + label + '</option>' + arr.map(function (v) { return '<option>' + DK.esc(v) + '</option>'; }).join(''); }
-fill('f-field', FIELDS, '전체'); fill('f-region', REGIONS, '전체'); fill('f-career', CAREERS, '전체'); fill('f-emp', EMP_TYPES, '전체');
+fill('f-ctype', COMPANY_TYPES, '전체'); fill('f-field', FIELDS, '전체'); /* 지역: 권역 묶음 + 시·도 */
+$('f-region').innerHTML = '<option value="">전체</option><optgroup label="권역">' + Object.keys(Jobs.AREAS).map(function (a) {
+  return '<option value="area:' + DK.esc(a) + '">' + DK.esc(a) + ' (' + DK.esc(Jobs.AREAS[a].join(', ')) + ')</option>';
+}).join('') + '</optgroup><optgroup label="시·도">' + REGIONS.map(function (v) { return '<option>' + DK.esc(v) + '</option>'; }).join('') + '</optgroup>'; fill('f-career', CAREERS, '전체'); fill('f-emp', EMP_TYPES, '전체');
 
 var PER = 8, page = 1, cmp = [];
 
 function filtered() {
-  var q = $('q').value.trim().toLowerCase(), f = $('f-field').value, r = $('f-region').value, c = $('f-career').value, e = $('f-emp').value, s = $('f-status').value;
+  var q = $('q').value.trim().toLowerCase(), t = $('f-ctype').value, f = $('f-field').value, r = $('f-region').value, c = $('f-career').value, e = $('f-emp').value, s = $('f-status').value;
   var saved = Jobs.savedIds(), only = $('only-saved').checked;
   var list = Jobs.all().filter(function (j) {
-    return (!q || (j.title + j.company + j.field + j.summary).toLowerCase().indexOf(q) > -1) &&
-      (!f || j.field === f) && (!r || j.region === r) && (!c || j.career === c) && (!e || j.empType === e) && (!s || j.status === s) &&
+    return (!q || (j.title + j.company + (j.companyType || '') + j.field + j.summary).toLowerCase().indexOf(q) > -1) &&
+      (!t || j.companyType === t) && (!f || j.field === f) && (!r || (r.indexOf('area:') === 0 ? Jobs.inArea(j, r.slice(5)) : j.region === r)) && (!c || j.career === c) && (!e || j.empType === e) && (!s || j.status === s) &&
       (!only || saved.indexOf(j.id) > -1);
   });
   if ($('sort').value === 'end') list.sort(function (a, b) { return a.end < b.end ? -1 : 1; });
@@ -70,12 +82,12 @@ function filtered() {
 function render() {
   var list = filtered(), pages = Math.max(1, Math.ceil(list.length / PER)); if (page > pages) page = pages;
   $('count').textContent = list.length;
-  $('saved-info').textContent = DK.Auth.current() ? '· 저장한 공고 ' + Jobs.savedIds().length + '건' : '';
+  $('saved-info').textContent = DK.Auth.current() ? '(저장한 공고 ' + Jobs.savedIds().length + '건)' : '';
   $('list').innerHTML = list.length ? list.slice((page - 1) * PER, page * PER).map(function (j) { return Jobs.card(j, { compare: true }); }).join('') :
     '<div class="empty">조건에 맞는 공고가 없습니다.<br>검색어나 필터를 바꿔 보세요.</div>';
   $('list').querySelectorAll('[data-cmp]').forEach(function (cb) { cb.checked = cmp.indexOf(+cb.dataset.cmp) > -1; });
   var h = '';
-  if (pages > 1) { for (var i = 1; i <= pages; i++) h += '<button class="' + (i === page ? 'on' : '') + '" data-p="' + i + '">' + i + '</button>'; }
+  if (pages > 1) { for (var i = 1; i <= pages; i++) h += '<button type="button" class="' + (i === page ? 'on' : '') + '" data-p="' + i + '"' + (i === page ? ' aria-current="page"' : '') + ' aria-label="' + i + '페이지">' + i + '</button>'; }
   $('pager').innerHTML = h;
   updateBar();
 }
@@ -95,11 +107,13 @@ $('cmp-clear').addEventListener('click', function () { cmp = []; render(); });
 $('pager').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { page = +b.dataset.p; render(); window.scrollTo(0, 0); } });
 $('search-btn').addEventListener('click', function () { page = 1; render(); });
 $('q').addEventListener('keydown', function (e) { if (e.key === 'Enter') { page = 1; render(); } });
-['f-field', 'f-region', 'f-career', 'f-emp', 'f-status', 'only-saved', 'sort'].forEach(function (id) { $(id).addEventListener('change', function () { page = 1; render(); }); });
-$('reset').addEventListener('click', function () { $('q').value = ''; ['f-field', 'f-region', 'f-career', 'f-emp'].forEach(function (i) { $(i).value = ''; }); $('f-status').value = '모집중'; $('only-saved').checked = false; page = 1; render(); });
+['f-ctype', 'f-field', 'f-region', 'f-career', 'f-emp', 'f-status', 'only-saved', 'sort'].forEach(function (id) { $(id).addEventListener('change', function () { page = 1; render(); }); });
+$('reset').addEventListener('click', function () { $('q').value = ''; ['f-ctype', 'f-field', 'f-region', 'f-career', 'f-emp'].forEach(function (i) { $(i).value = ''; }); $('f-status').value = '모집중'; $('only-saved').checked = false; page = 1; render(); });
 
-/* URL 파라미터: ?q=검색어  ?field=분야  ?id=공고번호(상세 바로 열기) */
+/* URL 파라미터: ?q=검색어  ?type=기업 구분  ?region=지역(area:권역)  ?field=분야  ?id=공고번호(상세 바로 열기) */
+if (DK.qs('region') && [].some.call($('f-region').options, function (o) { return o.value === DK.qs('region'); })) $('f-region').value = DK.qs('region');
 if (DK.qs('q')) $('q').value = DK.qs('q');
+if (COMPANY_TYPES.indexOf(DK.qs('type')) > -1) $('f-ctype').value = DK.qs('type');
 if (DK.qs('field')) { $('f-field').value = DK.qs('field'); $('f-status').value = ''; }
 render();
 if (DK.qs('id')) Jobs.detail(+DK.qs('id'));
