@@ -2,127 +2,133 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://www.springframework.org/security/tags" prefix="sec" %>
-<c:set var="pageTitle" value="게시판 목록" scope="request"/>
-<%@ include file="../includes/header.jsp" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>자유게시판 - 도깨비 구인구직</title>
+<link rel="stylesheet" href="/resources/front/css/style.css">
+</head>
+<body>
+<a href="#main" class="skip-link">본문 바로가기</a>
 
-<div class="row mb-4">
-    <div class="col">
-        <h2><i class="bi bi-list-ul"></i> 자유게시판</h2>
+<header class="util-bar">
+    <div class="container">
+        <p class="util-desc">도깨비의 취업시장</p>
+        <div class="acct">
+            <sec:authorize access="isAnonymous()">
+                <a href="/login">로그인</a>
+            </sec:authorize>
+            <sec:authorize access="isAuthenticated()">
+                <span class="user-name"><sec:authentication property="principal.username"/>님</span>
+                <form action="/logout" method="post" style="display:inline;">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
+                    <button type="submit" style="background:none;border:none;color:#fff;cursor:pointer;padding:2px 12px;">로그아웃</button>
+                </form>
+            </sec:authorize>
+        </div>
     </div>
-    <div class="col-auto">
-        <sec:authorize access="isAuthenticated()">
-            <a href="/board/register" class="btn btn-primary">
-                <i class="bi bi-pencil-square"></i> 글쓰기
-            </a>
-        </sec:authorize>
+</header>
+
+<header class="gnb-wrap">
+    <div class="container">
+        <a href="/" class="logo">도깨비 구인구직</a>
+        <nav class="nav">
+            <a href="/board/list" class="active">자유게시판</a>
+        </nav>
+    </div>
+</header>
+
+<div class="page-head">
+    <div class="container">
+        <nav class="breadcrumb">
+            <ol>
+                <li><a href="/">홈</a></li>
+                <li aria-current="page">자유게시판</li>
+            </ol>
+        </nav>
+        <h1>자유게시판</h1>
+        <p>자유롭게 의견을 나누는 공간입니다.</p>
     </div>
 </div>
 
-<!-- Search Form -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form id="searchForm" action="/board/list" method="get">
-            <div class="row g-2">
-                <div class="col-auto">
-                    <select name="type" class="form-select">
-                        <option value="" <c:out value="${pageMaker.cri.type == null ? 'selected' : ''}"/>>--</option>
-                        <option value="T" <c:out value="${pageMaker.cri.type eq 'T' ? 'selected' : ''}"/>>제목</option>
-                        <option value="C" <c:out value="${pageMaker.cri.type eq 'C' ? 'selected' : ''}"/>>내용</option>
-                        <option value="W" <c:out value="${pageMaker.cri.type eq 'W' ? 'selected' : ''}"/>>작성자</option>
-                        <option value="TC" <c:out value="${pageMaker.cri.type eq 'TC' ? 'selected' : ''}"/>>제목+내용</option>
-                        <option value="TW" <c:out value="${pageMaker.cri.type eq 'TW' ? 'selected' : ''}"/>>제목+작성자</option>
-                        <option value="TWC" <c:out value="${pageMaker.cri.type eq 'TWC' ? 'selected' : ''}"/>>전체</option>
-                    </select>
-                </div>
-                <div class="col">
-                    <input type="text" name="keyword" class="form-control" 
-                           value='<c:out value="${pageMaker.cri.keyword}"/>' placeholder="검색어 입력">
-                </div>
-                <div class="col-auto">
-                    <button class="btn btn-outline-secondary" type="submit">
-                        <i class="bi bi-search"></i> 검색
-                    </button>
-                </div>
-            </div>
-            <input type="hidden" name="pageNum" value="1">
-            <input type="hidden" name="amount" value="${pageMaker.cri.amount}">
-        </form>
-    </div>
-</div>
+<main id="main" class="page" tabindex="-1">
+    <div class="container">
+        <div class="board-top">
+            <p class="total">전체 <b><c:out value="${pageMaker.total}"/></b>건</p>
+            <form id="searchForm" class="search-bar" action="/board/list" method="get">
+                <select name="type">
+                    <option value="" <c:out value="${pageMaker.cri.type == null ? 'selected' : ''}"/>>전체</option>
+                    <option value="T" <c:out value="${pageMaker.cri.type eq 'T' ? 'selected' : ''}"/>>제목</option>
+                    <option value="C" <c:out value="${pageMaker.cri.type eq 'C' ? 'selected' : ''}"/>>내용</option>
+                    <option value="W" <c:out value="${pageMaker.cri.type eq 'W' ? 'selected' : ''}"/>>작성자</option>
+                    <option value="TC" <c:out value="${pageMaker.cri.type eq 'TC' ? 'selected' : ''}"/>>제목+내용</option>
+                    <option value="TWC" <c:out value="${pageMaker.cri.type eq 'TWC' ? 'selected' : ''}"/>>전체</option>
+                </select>
+                <input type="text" name="keyword" value='<c:out value="${pageMaker.cri.keyword}"/>' placeholder="검색어 입력">
+                <input type="hidden" name="pageNum" value="1">
+                <input type="hidden" name="amount" value="${pageMaker.cri.amount}">
+                <button type="submit" class="btn">검색</button>
+            </form>
+        </div>
 
-<!-- Board List -->
-<div class="card">
-    <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
+        <table class="board-table">
+            <thead>
                 <tr>
-                    <th style="width:80px;">번호</th>
+                    <th style="width:70px;">번호</th>
                     <th>제목</th>
-                    <th style="width:120px;">작성자</th>
-                    <th style="width:150px;">등록일</th>
-                    <th style="width:80px;">조회</th>
+                    <th style="width:100px;">작성자</th>
+                    <th style="width:100px;">등록일</th>
                 </tr>
             </thead>
             <tbody>
                 <c:forEach items="${list}" var="board">
                     <tr>
-                        <td><c:out value="${board.bno}"/></td>
-                        <td>
-                            <a class="move text-decoration-none" href='<c:out value="${board.bno}"/>'>
+                        <td class="num"><c:out value="${board.bno}"/></td>
+                        <td class="title">
+                            <a class="move" href='<c:out value="${board.bno}"/>'>
                                 <c:out value="${board.title}"/>
                                 <c:if test="${board.replycnt > 0}">
-                                    <span class="badge bg-secondary"><c:out value="${board.replycnt}"/></span>
+                                    <span class="badge"><c:out value="${board.replycnt}"/></span>
                                 </c:if>
                             </a>
                         </td>
-                        <td>
+                        <td class="writer">
                             <c:choose>
-                                <c:when test="${not empty board.username}">
-                                    <c:out value="${board.username}"/>
-                                </c:when>
-                                <c:otherwise>
-                                    <c:out value="${board.writer}"/>
-                                </c:otherwise>
+                                <c:when test="${not empty board.username}"><c:out value="${board.username}"/></c:when>
+                                <c:otherwise><c:out value="${board.writer}"/></c:otherwise>
                             </c:choose>
                         </td>
-                        <td><fmt:formatDate pattern="yyyy-MM-dd" value="${board.regdate}"/></td>
-                        <td><c:out value="${board.replycnt}"/></td>
+                        <td class="date"><fmt:formatDate pattern="yyyy-MM-dd" value="${board.regdate}"/></td>
                     </tr>
                 </c:forEach>
                 <c:if test="${empty list}">
-                    <tr>
-                        <td colspan="5" class="text-center py-4">게시글이 없습니다.</td>
-                    </tr>
+                    <tr><td colspan="4" class="empty">게시글이 없습니다.</td></tr>
                 </c:if>
             </tbody>
         </table>
+
+        <div class="board-bottom">
+            <div></div>
+            <div class="pagination">
+                <c:if test="${pageMaker.prev}">
+                    <button type="button" class="pageBtn" data-page="${pageMaker.startPage - 1}">&lt;</button>
+                </c:if>
+                <c:forEach var="num" begin="${pageMaker.startPage}" end="${pageMaker.endPage}">
+                    <button type="button" class="pageBtn ${pageMaker.cri.pageNum == num ? 'on' : ''}" data-page="${num}">${num}</button>
+                </c:forEach>
+                <c:if test="${pageMaker.next}">
+                    <button type="button" class="pageBtn" data-page="${pageMaker.endPage + 1}">&gt;</button>
+                </c:if>
+            </div>
+            <sec:authorize access="isAuthenticated()">
+                <a href="/board/register" class="btn">글쓰기</a>
+            </sec:authorize>
+        </div>
     </div>
-</div>
+</main>
 
-<!-- Pagination -->
-<nav class="mt-4">
-    <ul class="pagination">
-        <c:if test="${pageMaker.prev}">
-            <li class="page-item">
-                <a class="page-link" href="${pageMaker.startPage - 1}">&laquo;</a>
-            </li>
-        </c:if>
-        
-        <c:forEach var="num" begin="${pageMaker.startPage}" end="${pageMaker.endPage}">
-            <li class="page-item ${pageMaker.cri.pageNum == num ? 'active' : ''}">
-                <a class="page-link" href="${num}">${num}</a>
-            </li>
-        </c:forEach>
-        
-        <c:if test="${pageMaker.next}">
-            <li class="page-item">
-                <a class="page-link" href="${pageMaker.endPage + 1}">&raquo;</a>
-            </li>
-        </c:if>
-    </ul>
-</nav>
-
-<!-- Hidden Form for Page Navigation -->
 <form id="actionForm" action="/board/list" method="get">
     <input type="hidden" name="pageNum" value="${pageMaker.cri.pageNum}">
     <input type="hidden" name="amount" value="${pageMaker.cri.amount}">
@@ -130,10 +136,20 @@
     <input type="hidden" name="keyword" value='<c:out value="${pageMaker.cri.keyword}"/>'>
 </form>
 
+<footer class="site-footer">
+    <div class="container">
+        <ul class="footer-links">
+            <li><a href="#">이용약관</a></li>
+            <li><a href="#">개인정보처리방침</a></li>
+        </ul>
+        <div class="footer-brand">도깨비 구인구직</div>
+        <p class="copyright">&copy; 2024 도깨비 구인구직. All rights reserved.</p>
+    </div>
+</footer>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var result = '<c:out value="${result}"/>';
-    
     if (result) {
         if (result === 'success') {
             alert('처리가 완료되었습니다.');
@@ -141,34 +157,29 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('게시글 ' + result + '번이 등록되었습니다.');
         }
     }
-    
-    // Page link click
-    document.querySelectorAll('.pagination a').forEach(function(el) {
-        el.addEventListener('click', function(e) {
-            e.preventDefault();
+
+    document.querySelectorAll('.pageBtn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
             var actionForm = document.getElementById('actionForm');
-            actionForm.querySelector('[name="pageNum"]').value = this.getAttribute('href');
+            actionForm.querySelector('[name="pageNum"]').value = this.dataset.page;
             actionForm.submit();
         });
     });
-    
-    // Board title click
+
     document.querySelectorAll('.move').forEach(function(el) {
         el.addEventListener('click', function(e) {
             e.preventDefault();
             var actionForm = document.getElementById('actionForm');
             actionForm.action = '/board/get';
-            
             var bnoInput = document.createElement('input');
             bnoInput.type = 'hidden';
             bnoInput.name = 'bno';
             bnoInput.value = this.getAttribute('href');
             actionForm.appendChild(bnoInput);
-            
             actionForm.submit();
         });
     });
 });
 </script>
-
-<%@ include file="../includes/footer.jsp" %>
+</body>
+</html>
