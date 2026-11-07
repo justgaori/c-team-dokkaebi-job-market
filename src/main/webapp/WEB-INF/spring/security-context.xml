@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="bcryptPasswordEncoder"
+		class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+
+	<security:http>
+		<!-- 게시판 권한 설정 -->
+		<security:intercept-url pattern="/board/register" access="isAuthenticated()" />
+		<security:intercept-url pattern="/board/modify" access="isAuthenticated()" />
+		<security:intercept-url pattern="/board/remove" access="isAuthenticated()" />
+		
+		<!-- 기본 폼 로그인 (회원 팀원이 커스터마이즈 예정) -->
+		<security:form-login />
+		<security:logout />
+	</security:http>
+
+	<!-- 임시: 인메모리 사용자 (회원 기능 구현 전 테스트용) -->
+	<security:authentication-manager>
+		<security:authentication-provider>
+			<security:user-service>
+				<!-- 테스트 계정: admin / 1234, user1 / 1234 (noop = plaintext) -->
+				<security:user name="admin" 
+					password="{noop}1234" 
+					authorities="ROLE_ADMIN,ROLE_MEMBER" />
+				<security:user name="user1" 
+					password="{noop}1234" 
+					authorities="ROLE_MEMBER" />
+			</security:user-service>
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+</beans>

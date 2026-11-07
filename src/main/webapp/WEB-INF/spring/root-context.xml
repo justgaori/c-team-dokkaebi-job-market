@@ -16,15 +16,14 @@
 
 	<context:annotation-config></context:annotation-config>
 
+	<!-- Load database properties from external file -->
+	<context:property-placeholder location="classpath:db.properties" />
+
 	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
-
-		<property name="driverClassName"
-			value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"></property>
-		<property name="jdbcUrl"
-			value="jdbc:log4jdbc:oracle:thin:@localhost:1521:XE"></property>
-		<property name="username" value="book_ex"></property>
-		<property name="password" value="book_ex"></property>
-
+		<property name="driverClassName" value="${db.driverClassName}"></property>
+		<property name="jdbcUrl" value="${db.url}"></property>
+		<property name="username" value="${db.username}"></property>
+		<property name="password" value="${db.password}"></property>
 	</bean>
 
 	<!-- HikariCP configuration -->
