@@ -36,17 +36,17 @@
                 <ul class="navbar-nav">
                     <sec:authorize access="isAnonymous()">
                         <li class="nav-item">
-                            <a class="nav-link" href="/member/login">로그인</a>
+                            <a class="nav-link" href="/login">로그인</a>
                         </li>
                     </sec:authorize>
                     <sec:authorize access="isAuthenticated()">
                         <li class="nav-item">
                             <span class="nav-link text-light">
-                                <sec:authentication property="principal.member.username"/>님
+                                <sec:authentication property="principal.username"/>님
                             </span>
                         </li>
                         <li class="nav-item">
-                            <form action="/member/logout" method="post" style="display:inline;">
+                            <form action="/logout" method="post" style="display:inline;">
                                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
                                 <button type="submit" class="btn btn-outline-light btn-sm">로그아웃</button>
                             </form>

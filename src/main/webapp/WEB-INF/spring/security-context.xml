@@ -5,29 +5,55 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<!-- 
+		TODO: 회원 팀원이 제공해야 할 항목:
+		1. CustomUserDetailsService (UserDetailsService 구현체)
+		2. MemberMapper, MemberVO, AuthVO
+		3. tbl_member, tbl_member_auth, persistent_logins 테이블
+		4. login.jsp, 로그인/로그아웃 처리
+		5. CustomAccessDeniedHandler (선택)
+	-->
+
 	<bean id="bcryptPasswordEncoder"
 		class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
 
-	<bean id="customUserDetailsService" class="com.dokkaebi.security.CustomUserDetailsService" />
-
-	<bean id="customAccessDenied" class="com.dokkaebi.security.CustomAccessDeniedHandler" />
-
 	<security:http>
+		<!-- 게시판 권한 설정 -->
 		<security:intercept-url pattern="/board/register" access="isAuthenticated()" />
 		<security:intercept-url pattern="/board/modify" access="isAuthenticated()" />
 		<security:intercept-url pattern="/board/remove" access="isAuthenticated()" />
 		
-		<security:form-login login-page="/member/login" />
-		<security:logout logout-url="/member/logout" invalidate-session="true" />
-		
-		<security:access-denied-handler ref="customAccessDenied" />
-		
-		<security:remember-me data-source-ref="dataSource" token-validity-seconds="604800" />
+		<!-- 기본 폼 로그인 (회원 팀원이 커스터마이즈 예정) -->
+		<security:form-login />
+		<security:logout />
 	</security:http>
 
+	<!-- 
+		회원 팀원이 CustomUserDetailsService 구현 후 아래 주석 해제:
+		
+		<bean id="customUserDetailsService" class="com.dokkaebi.security.CustomUserDetailsService" />
+		<bean id="customAccessDenied" class="com.dokkaebi.security.CustomAccessDeniedHandler" />
+		
+		<security:authentication-manager>
+			<security:authentication-provider user-service-ref="customUserDetailsService">
+				<security:password-encoder ref="bcryptPasswordEncoder" />
+			</security:authentication-provider>
+		</security:authentication-manager>
+	-->
+
+	<!-- 임시: 인메모리 사용자 (회원 기능 구현 전 테스트용) -->
 	<security:authentication-manager>
-		<security:authentication-provider user-service-ref="customUserDetailsService">
+		<security:authentication-provider>
 			<security:password-encoder ref="bcryptPasswordEncoder" />
+			<security:user-service>
+				<!-- 테스트 계정: admin / admin123, user1 / user123 (BCrypt 해시) -->
+				<security:user name="admin" 
+					password="$2a$10$N9qo8uLOickgx2ZMRZoMy.Mrq4M7Np8mVH1cY0e0XMZmvBdWHU5m." 
+					authorities="ROLE_ADMIN,ROLE_MEMBER" />
+				<security:user name="user1" 
+					password="$2a$10$N9qo8uLOickgx2ZMRZoMy.Mrq4M7Np8mVH1cY0e0XMZmvBdWHU5m." 
+					authorities="ROLE_MEMBER" />
+			</security:user-service>
 		</security:authentication-provider>
 	</security:authentication-manager>
 
