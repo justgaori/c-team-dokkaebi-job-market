@@ -6,3 +6,6 @@ target/
 *.class
 .idea/
 *.iml
+
+# Database properties (contains local credentials)
+src/main/resources/db.properties
