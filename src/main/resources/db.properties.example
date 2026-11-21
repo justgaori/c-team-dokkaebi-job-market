@@ -4,3 +4,7 @@ db.driverClassName=net.sf.log4jdbc.sql.jdbcapi.DriverSpy
 db.url=jdbc:log4jdbc:oracle:thin:@localhost:1521:XE
 db.username=book_ex
 db.password=book_ex
+
+# Job API (data.go.kr Alio)
+# Get your service key from https://www.data.go.kr/data/15083277/openapi.do
+alio.serviceKey=YOUR_SERVICE_KEY_HERE

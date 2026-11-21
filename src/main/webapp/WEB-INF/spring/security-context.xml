@@ -13,6 +13,9 @@
 		<security:intercept-url pattern="/board/register" access="isAuthenticated()" />
 		<security:intercept-url pattern="/board/modify" access="isAuthenticated()" />
 		<security:intercept-url pattern="/board/remove" access="isAuthenticated()" />
+		<!-- 채용정보 갱신은 관리자만 -->
+		<security:intercept-url pattern="/job/admin/**" access="hasRole('ROLE_ADMIN')" />
+		<security:intercept-url pattern="/job/refresh" access="hasRole('ROLE_ADMIN')" />
 		
 		<!-- 기본 폼 로그인 (회원 팀원이 커스터마이즈 예정) -->
 		<security:form-login />

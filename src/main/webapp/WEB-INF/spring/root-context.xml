@@ -36,6 +36,11 @@
 		class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource"></property>
 		<property name="mapperLocations" value="classpath:com/dokkaebi/mapper/*.xml"></property>
+		<property name="configuration">
+			<bean class="org.apache.ibatis.session.Configuration">
+				<property name="mapUnderscoreToCamelCase" value="true" />
+			</bean>
+		</property>
 	</bean>
 
 	<bean id="transactionManager"
@@ -50,4 +55,8 @@
 
 	<context:component-scan
 		base-package="com.dokkaebi.service"></context:component-scan>
+	<context:component-scan
+		base-package="com.dokkaebi.collector"></context:component-scan>
+
+	<task:annotation-driven />
 </beans>

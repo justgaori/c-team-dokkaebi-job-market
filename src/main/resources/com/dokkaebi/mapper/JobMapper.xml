@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dokkaebi.mapper.JobMapper">
+
+    <sql id="criteria">
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (UPPER(title) LIKE '%' || UPPER(#{keyword}) || '%'
+                     OR UPPER(org_name) LIKE '%' || UPPER(#{keyword}) || '%')
+            </if>
+            <if test="region != null and region != ''">
+                AND work_rgn_nm LIKE '%' || #{region} || '%'
+            </if>
+            <if test="jobType != null and jobType != ''">
+                AND ncs_nm LIKE '%' || #{jobType} || '%'
+            </if>
+            <if test="employmentType != null and employmentType != ''">
+                AND hire_type_nm LIKE '%' || #{employmentType} || '%'
+            </if>
+            <if test="status == 'ongoing'">
+                AND end_date >= TRUNC(SYSDATE)
+            </if>
+        </where>
+    </sql>
+
+    <select id="getListWithPaging" resultType="com.dokkaebi.domain.JobVO">
+        <![CDATA[
+        SELECT * FROM (
+            SELECT /*+ INDEX_DESC(j idx_job_end_date) */
+                ROWNUM rn, j.*
+            FROM (
+                SELECT job_id, source, source_job_id, title, org_name, inst_cd,
+                       region, job_type, employment_type, career, education,
+                       ncs_cd, ncs_nm, hire_type_cd, hire_type_nm,
+                       work_rgn_cd, work_rgn_nm, recrut_se, recrut_se_nm,
+                       acbg_cond_cd, acbg_cond_nm, hire_cnt, subst_yn,
+                       start_date, end_date, url, fetched_at, detail_fetched
+                FROM tbl_job
+        ]]>
+        <include refid="criteria"/>
+        <![CDATA[
+                ORDER BY end_date ASC NULLS LAST, job_id DESC
+            ) j
+            WHERE ROWNUM <= #{pageNum} * #{amount}
+        )
+        WHERE rn > (#{pageNum} - 1) * #{amount}
+        ]]>
+    </select>
+
+    <select id="getTotalCount" resultType="int">
+        SELECT COUNT(*) FROM tbl_job
+        <include refid="criteria"/>
+    </select>
+
+    <select id="read" resultType="com.dokkaebi.domain.JobVO">
+        SELECT job_id, source, source_job_id, title, org_name, inst_cd,
+               region, job_type, employment_type, career, education,
+               ncs_cd, ncs_nm, hire_type_cd, hire_type_nm,
+               work_rgn_cd, work_rgn_nm, recrut_se, recrut_se_nm,
+               acbg_cond_cd, acbg_cond_nm, hire_cnt, subst_yn,
+               start_date, end_date, url, qualify_cn, pref_cn, procedure_cn,
+               fetched_at, detail_fetched
+        FROM tbl_job
+        WHERE job_id = #{jobId, jdbcType=NUMERIC}
+    </select>
+
+    <select id="readBySourceId" resultType="com.dokkaebi.domain.JobVO">
+        SELECT job_id, source, source_job_id, title, org_name, inst_cd,
+               region, job_type, employment_type, career, education,
+               ncs_cd, ncs_nm, hire_type_cd, hire_type_nm,
+               work_rgn_cd, work_rgn_nm, recrut_se, recrut_se_nm,
+               acbg_cond_cd, acbg_cond_nm, hire_cnt, subst_yn,
+               start_date, end_date, url, qualify_cn, pref_cn, procedure_cn,
+               fetched_at, detail_fetched
+        FROM tbl_job
+        WHERE source = #{source} AND source_job_id = #{sourceJobId}
+    </select>
+
+    <insert id="insert">
+        <selectKey keyProperty="jobId" order="BEFORE" resultType="long">
+            SELECT seq_tbl_job.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO tbl_job (
+            job_id, source, source_job_id, title, org_name, inst_cd,
+            ncs_cd, ncs_nm, hire_type_cd, hire_type_nm,
+            work_rgn_cd, work_rgn_nm, recrut_se, recrut_se_nm,
+            acbg_cond_cd, acbg_cond_nm, hire_cnt, subst_yn,
+            start_date, end_date, url, fetched_at
+        ) VALUES (
+            #{jobId}, #{source}, #{sourceJobId}, #{title}, #{orgName}, #{instCd},
+            #{ncsCd}, #{ncsNm}, #{hireTypeCd}, #{hireTypeNm},
+            #{workRgnCd}, #{workRgnNm}, #{recrutSe}, #{recrutSeNm},
+            #{acbgCondCd}, #{acbgCondNm}, #{hireCnt}, #{substYn},
+            #{startDate}, #{endDate}, #{url}, SYSTIMESTAMP
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE tbl_job SET
+            title = #{title},
+            org_name = #{orgName},
+            inst_cd = #{instCd},
+            ncs_cd = #{ncsCd},
+            ncs_nm = #{ncsNm},
+            hire_type_cd = #{hireTypeCd},
+            hire_type_nm = #{hireTypeNm},
+            work_rgn_cd = #{workRgnCd},
+            work_rgn_nm = #{workRgnNm},
+            recrut_se = #{recrutSe},
+            recrut_se_nm = #{recrutSeNm},
+            acbg_cond_cd = #{acbgCondCd},
+            acbg_cond_nm = #{acbgCondNm},
+            hire_cnt = #{hireCnt},
+            subst_yn = #{substYn},
+            start_date = #{startDate},
+            end_date = #{endDate},
+            url = #{url},
+            fetched_at = SYSTIMESTAMP
+        WHERE job_id = #{jobId}
+    </update>
+
+    <update id="updateDetail">
+        UPDATE tbl_job SET
+            qualify_cn = #{qualifyCn},
+            pref_cn = #{prefCn},
+            procedure_cn = #{procedureCn},
+            detail_fetched = 'Y'
+        WHERE job_id = #{jobId}
+    </update>
+
+    <update id="merge">
+        MERGE INTO tbl_job t
+        USING (SELECT #{source} AS source, #{sourceJobId} AS source_job_id FROM DUAL) s
+        ON (t.source = s.source AND t.source_job_id = s.source_job_id)
+        WHEN MATCHED THEN
+            UPDATE SET
+                title = #{title},
+                org_name = #{orgName},
+                inst_cd = #{instCd},
+                ncs_cd = #{ncsCd},
+                ncs_nm = #{ncsNm},
+                hire_type_cd = #{hireTypeCd},
+                hire_type_nm = #{hireTypeNm},
+                work_rgn_cd = #{workRgnCd},
+                work_rgn_nm = #{workRgnNm},
+                recrut_se = #{recrutSe},
+                recrut_se_nm = #{recrutSeNm},
+                acbg_cond_cd = #{acbgCondCd},
+                acbg_cond_nm = #{acbgCondNm},
+                hire_cnt = #{hireCnt},
+                subst_yn = #{substYn},
+                start_date = #{startDate},
+                end_date = #{endDate},
+                url = #{url},
+                fetched_at = SYSTIMESTAMP
+        WHEN NOT MATCHED THEN
+            INSERT (job_id, source, source_job_id, title, org_name, inst_cd,
+                    ncs_cd, ncs_nm, hire_type_cd, hire_type_nm,
+                    work_rgn_cd, work_rgn_nm, recrut_se, recrut_se_nm,
+                    acbg_cond_cd, acbg_cond_nm, hire_cnt, subst_yn,
+                    start_date, end_date, url, fetched_at)
+            VALUES (seq_tbl_job.NEXTVAL, #{source}, #{sourceJobId}, #{title}, #{orgName}, #{instCd},
+                    #{ncsCd}, #{ncsNm}, #{hireTypeCd}, #{hireTypeNm},
+                    #{workRgnCd}, #{workRgnNm}, #{recrutSe}, #{recrutSeNm},
+                    #{acbgCondCd}, #{acbgCondNm}, #{hireCnt}, #{substYn},
+                    #{startDate}, #{endDate}, #{url}, SYSTIMESTAMP)
+    </update>
+
+    <insert id="insertFile">
+        <selectKey keyProperty="fileId" order="BEFORE" resultType="long">
+            SELECT seq_tbl_job_file.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO tbl_job_file (file_id, job_id, file_no, sort_no, file_name, file_type, file_url)
+        VALUES (#{fileId}, #{jobId}, #{fileNo}, #{sortNo}, #{fileName}, #{fileType}, #{fileUrl})
+    </insert>
+
+    <delete id="deleteFilesByJobId">
+        DELETE FROM tbl_job_file WHERE job_id = #{jobId, jdbcType=NUMERIC}
+    </delete>
+
+    <select id="getFilesByJobId" resultType="com.dokkaebi.domain.JobFileVO">
+        SELECT file_id, job_id, file_no, sort_no, file_name, file_type, file_url
+        FROM tbl_job_file
+        WHERE job_id = #{jobId, jdbcType=NUMERIC}
+        ORDER BY sort_no
+    </select>
+
+    <select id="getDistinctRegions" resultType="string">
+        SELECT DISTINCT work_rgn_nm FROM tbl_job 
+        WHERE work_rgn_nm IS NOT NULL 
+        ORDER BY work_rgn_nm
+    </select>
+
+    <select id="getDistinctJobTypes" resultType="string">
+        SELECT DISTINCT ncs_nm FROM tbl_job 
+        WHERE ncs_nm IS NOT NULL 
+        ORDER BY ncs_nm
+    </select>
+
+    <select id="getDistinctEmploymentTypes" resultType="string">
+        SELECT DISTINCT hire_type_nm FROM tbl_job 
+        WHERE hire_type_nm IS NOT NULL 
+        ORDER BY hire_type_nm
+    </select>
+
+</mapper>

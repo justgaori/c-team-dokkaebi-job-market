@@ -38,7 +38,7 @@
       </a>
       <button class="menu-btn" id="menu-btn" type="button" aria-label="주 메뉴 열기" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
       <nav class="nav" id="nav" aria-label="주 메뉴">
-        <a href="<c:url value='/resources/front/jobs.html'/>">채용정보</a>
+        <a href="<c:url value='/job/list'/>">채용정보</a>
         <a href="<c:url value='/board/list'/>" class="active" aria-current="page">정보공유 게시판</a>
         <a href="<c:url value='/resources/front/alerts.html'/>">맞춤 알림</a>
         <a href="<c:url value='/resources/front/about.html'/>">서비스 소개</a>
@@ -114,7 +114,7 @@
 <footer class="site-footer">
   <div class="container">
     <ul class="footer-links">
-      <li><a href="<c:url value='/resources/front/jobs.html'/>">채용정보</a></li>
+      <li><a href="<c:url value='/job/list'/>">채용정보</a></li>
       <li><a href="<c:url value='/board/list'/>">정보공유 게시판</a></li>
       <li><a href="<c:url value='/resources/front/alerts.html'/>">맞춤 알림</a></li>
       <li><a href="<c:url value='/resources/front/about.html'/>">서비스 소개</a></li>
